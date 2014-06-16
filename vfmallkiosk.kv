@@ -1,0 +1,350 @@
+#:kivy 1.8.0
+
+VFMallKiosk:
+	
+
+<VFMallKiosk>:
+	screen_manager: screen_manager
+	category_screen: category_screen
+	store_screen: store_screen
+	canvas:
+		Rectangle:
+			size: (1920, 1080)
+			pos: root.pos
+			source: 'assets/backgrounds/bg1.png'
+	ScreenManager:
+		id: screen_manager
+		MainScreen:
+			name: 'main'
+			previous: None
+		CategoryScreen:
+			id: category_screen
+			name: 'category'
+			previous: 'main'
+		StoreScreen:
+			id: store_screen
+			name: 'store'
+			previous: 'category'
+
+<StoreLogoButton>:
+	orientation: 'vertical'
+	on_release: app.root.open_store(self.store_key)
+	padding: 5
+	spacing: 5
+	Image:
+		size_hint: (None, None)
+		height: min(256, min(root.width - 10, (root.height - 10)*.8))
+		pos_hint: {'x': (root.width-self.width-10)/(2*root.width)}
+		width: self.height
+		id: im
+		keep_ratio: True
+		source: 'assets/store_logos/' + root.store_key + '-256x256.png'
+	Label:
+		text: root.store_name
+		size_hint: (None, None)
+		width: im.width
+		height: im.height*.2
+		pos_hint: {'x': (root.width-self.width-10)/(2*root.width)}
+		font_size: '20dp'
+		halign: 'center'
+		valign: 'top'
+
+<KioskView>:
+    gameworld: gameworld
+    pos: root.pos
+    size: root.size
+    GameWorld:
+        id: gameworld
+        pos: root.pos
+        gamescreenmanager: gamescreenmanager
+        GameView:
+            system_id: 'default_gameview'
+            focus_entity: False
+            updateable: True
+            id: camera
+            size: root.size
+            do_scroll_lock: False
+            do_scroll: False
+            gameworld: root.gameworld
+            camera_pos: (845, -100)
+        GameMap:
+            system_id: 'map'
+            map_size: (1920, 1080)
+            gameworld: gameworld
+        PositionSystem:
+        	system_id: 'position'
+            gameworld: root.gameworld
+        ColorSystem:
+        	system_id: 'color'
+        	gameworld: root.gameworld
+        QuadRendererNoTextures:
+            system_id: 'shape_renderer'
+            gameworld: root.gameworld
+            shader_source: 'positioncolorshader.glsl'
+            update_time: (1./60.)
+        StoreData:
+            system_id: 'store_data'
+            gameworld: root.gameworld
+            app: app
+    GameScreenManager:
+        id: gamescreenmanager
+        size: root.size
+        pos: root.pos
+        gameworld: root.gameworld
+
+
+<StoreScreen>:
+	app: app
+	kioskmap: kioskmap
+	KioskView:
+		id: kioskmap
+	Image:
+        pos: (1469, 680)
+        source: 'assets/icons/bathroom-icon.png'
+        size: (22, 26)
+        size_hint: (None, None)
+    Image:
+        pos: (1580, 535)
+        source: 'assets/icons/youarehere-icon.png'
+        size: (25, 25)
+        size_hint: (None, None)
+    Label:
+    	pos: (1610, 535)
+    	text: 'You Are Here'
+    	size_hint: (None, None)
+    	size: self.texture_size
+    	color: (1., 1., 1., 1.)
+    	font_size: '18dp'
+	BoxLayout:
+		orientation: 'vertical'
+		size_hint: (None, None)
+		size: (800, 1080)
+		pos: (20, 10)
+		Image:
+			size_hint: (1.0, None)
+			height: 250
+			source: 'assets/valleyfair-800x250.png'
+		Image:
+			size_hint: (None, None)
+			size: (800, 500)
+			source: 'assets/store_fronts/' + root.current_key + '-800x500.jpg'
+		BoxLayout:
+			spacing: 10
+			padding: 10
+			size_hint: (1.0, None)
+			height: 150
+			Label:
+				text_size: self.size
+				id: text_label
+				font_size: '24dp'
+		Widget:
+			size_hint: (1.0, None)
+			height: 165
+	BackButton:
+		pos: (20, 20)
+
+
+
+<CategoryScreen>:
+	app: app
+	BoxLayout:
+		orientation: 'horizontal'
+		size: (600, 242)
+		pos: root.pos[0], root.height-242
+		size_hint: (None, None)
+		padding: 10
+		spacing: 10
+		Image:
+			size_hint: (None, None)
+			size: (216, 222)
+			source: 'atlas://assets/icons/category_icons/' + root.category + '-216x222-normal'
+		Label:
+			size_hint: (None, None)
+			text_size: self.size
+			size: (350, 222)
+			text: root.get_title(root.category)
+			valign: 'middle'
+			font_size: '50dp'
+	GridLayout:
+		size_hint: (None, None)
+		size: (780, 1080)
+		pos: (600, 0)
+		padding: 25
+		cols: 3
+		id: logo_layout
+	FloatLayout:
+		size: (550, 1080)
+		pos: (1370, 0)
+		size_hint: (None, None)
+		id: ad
+		canvas.before:
+			Color:
+				rgb: (0.196078431, 0.803921569, 0.823529412)
+			Rectangle:
+				size: self.size
+				pos: self.pos
+		Image:
+			source: 'assets/category_ads/' + root.category + '-550x1080.png'
+			pos: ad.pos
+	GridLayout:
+		id: button_layout
+		cols: 1
+		size: (500, 650)
+		on_children: root.calculate_sizing(args[0], args[1])
+		row_force_default: True
+		spacing: 20
+		pos: (50, 131) 
+		size_hint: (None, None)
+	BackButton:
+		pos: (20, 20)
+
+<AdScreen@Screen>:
+	
+
+<MapPopup>:
+	canvas.before:
+		Color:
+			rgba: (0., 0., .35, .9)
+		Rectangle:
+			size: self.size
+			pos: self.pos
+		Color:
+			rgb: (0., 0., .2)
+		Line:
+			rectangle: (self.pos[0], self.pos[1], self.size[0], self.size[1])
+			width: 4.
+	Label:
+		size: root.size
+		pos: root.pos
+		text_size: self.size
+		size_hint: (None, None)
+		font_size: '20dp'
+		valign: 'middle'
+		halign: 'center'
+		text: "This store's location is currently not in the database."
+
+
+<MainScreen>:
+	carousel: carousel
+	Label:
+		size_hint: (None, None)
+		texture_size: self.size
+		size: (700, 200)
+		pos: (30, 870)
+		text: 'Mall Directory'
+		font_size: '100dp'
+	Label:
+		size_hint: (None, None)
+		texture_size: self.size
+		size: (700, 100)
+		pos: (180, 820)
+		color: (.55, .55, .55, 1.0)
+		text: 'presented by: '
+		font_size: '65dp'
+	Carousel:
+		size_hint: (None, None)
+		size: (1100, 200)
+		id: carousel
+		pos: (760, 830)
+		loop: True
+		anim_move_duration: .25
+		Image:
+			source: 'assets/front_page_ads/aquarium-1100x200.png'
+		Image:
+			source: 'assets/front_page_ads/ag-1100x200.png'
+		Image:
+			source: 'assets/front_page_ads/biofire-1100x200.png'
+		Image:
+			source: 'assets/front_page_ads/limelight-1100x200.png'
+		Image:
+			source: 'assets/front_page_ads/macu-1100x200.png'
+		Image:
+			source: 'assets/front_page_ads/overstock-1100x200.png'
+		Image:
+			source: 'assets/front_page_ads/proof-1100x200.png'
+		Image:
+			source: 'assets/front_page_ads/vivint-1100x200.png'
+
+	GridLayout:
+		size_hint: (None, None)
+		pos_hint: {'x': ((root.size[0]-self.size[0])/2.)/root.size[0], 'y': .1}
+		rows: 2
+		cols: 5
+		size: self.minimum_size
+		padding: 50
+		spacing: 50
+		CategoryButton:
+			image_name: 'clothing'
+			category_name: 'Clothing'
+			on_release: app.root.open_category(self.image_name)
+		CategoryButton:
+			image_name: 'accessories'
+			category_name: 'Accessories'
+			on_release: app.root.open_category(self.image_name)
+		CategoryButton:
+			image_name: 'food'
+			category_name: 'Food'
+			on_release: app.root.open_category(self.image_name)
+		CategoryButton:
+			image_name: 'electronics'
+			category_name: 'Electronics'
+			on_release: app.root.open_category(self.image_name)
+		CategoryButton:
+			image_name: 'gifts'
+			category_name: 'Gifts'
+			on_release: app.root.open_category(self.image_name)
+		CategoryButton:
+			image_name: 'healthandbeauty'
+			category_name: 'Health and Beauty'
+			on_release: app.root.open_category(self.image_name)
+		CategoryButton:
+			image_name: 'home'
+			category_name: 'Home'
+			on_release: app.root.open_category(self.image_name)
+		CategoryButton:
+			image_name: 'jewelry'
+			category_name: 'Jewelry'
+			on_release: app.root.open_category(self.image_name)
+		CategoryButton:
+			image_name: 'movies'
+			category_name: 'Movies'
+			on_release: app.root.open_category(self.image_name)
+		CategoryButton:
+			image_name: 'shoes'
+			category_name: 'Shoes'
+			on_release: app.root.open_category(self.image_name)
+
+
+<SubCategoryButton>:
+	background_down: 'assets/buttons/' + self.category + '-normal-450x100.png'
+	background_normal: 'assets/buttons/' + self.category + '-down-450x100.png'
+	font_size: '36dp'
+	group: 'subcategory'
+
+<BackButton@Button>:
+	background_down: 'assets/buttons/back-down-393x101.png'
+	background_normal: 'assets/buttons/back-normal-393x101.png'
+	font_size: '36dp'
+	size_hint: (None, None)
+	size: (393, 101)
+	text: 'Back'
+	on_release: app.root.go_back()	
+	
+
+
+<CategoryButton>:
+	orientation: 'tb-lr'
+	size_hint: (None, None)
+	size: 216, 272
+	Image:
+		size_hint: (None, None)
+		size: (216, 222)
+		source: 'atlas://assets/icons/category_icons/' + root.image_name + '-216x222-down' if root.state == 'down' else 'atlas://assets/icons/category_icons/' + root.image_name + '-216x222-normal'
+	Label:
+		text: root.category_name
+		size_hint: (None, None)
+		size: (216, 50)
+		font_size: '36dp'
+
+
+
